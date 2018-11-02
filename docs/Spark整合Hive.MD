@@ -1,76 +1,27 @@
-- 设置 spark 在 IDEA 的开发环境
+## Hive
 
-  - 下载安装 scala 并配置环境变量
+可以像编写 SQL 一样来分析数据， FaceBook 开源了 Hive 用于对海量数据进行统计分析。它可以基于 HDFS 提取结构化数据文件，将其映射为一张表，通过 SQL 语句的方式来分析数据。
 
-  - 下载安装 spark 并配置环境变量
+因此，Hive 主要有以下优点：
 
-  - idea 安装 scala 插件
+- 可以将数据通过 SQL 语句来处理，支持提取，转换，加载以及数据分析等大数据作业。
+- 可以将结构化日志数据转化为文件存储在 HDFS 或者 Hbase 等数据存储系统上。
+- 底层用 MapReduce 对数据进行计算，也可以自己通过 MapReduce、Spark 编写程序来拓展 Hive 的功能实现更多自定义的数据处理。
+- Hive 的实质就是将 HQL 语言转化为 MapReduce。它适合离线数据的处理。
 
-    ![](imgs/2.png)
+Hive架构图：
 
-  - idea 配置 scala 本地路径
+![](imgs/7.png)
 
-    ![](imgs/1.png)
+从上面的架构图可以看出，Hive 主要由 Meta store （元数据），SQL Parser （SQL 解析器），Query Optimizer（查询优化器），Physical Plan（物理计划）这几个重要的部分组成。
 
-  - idea 添加 sprak jar 包，选择  "+"    ->   " java "  ->  找到spark下的 jars 目录
+Meta Store 是 Hive 的元数据，默认的 Hive 会将表的元数据存储在 derby 内存数据库中，这是 Hive 自带的，当然一般情况下我们并不会将元数据存储在内存中，而是存入 Mysql 数据库，具体我们会在后面 Hive 的安装部署中介绍到。
 
-    ![](imgs/3.png)
+SQL Parser 是指当输出 SQL 语句后，Hive 首先会生成 SQL 语法树，然后解析当前 SQL 语法是否正确，表是否存在，主要做验证检查工作。
 
-  - 重启 idea
+Query Optimizer 会在 SQL Parser 检查之后对 SQL 语句做简单的优化操作，以 Hive 认为最优的方式去执行当前 SQL。
 
-- 问题解决
-
-  1. 出现下面问题是因为scala 的版本 和spark-sql的版本不一致的问题。解决方法是 scala 和 jar 文件的版本一致。
-
-     ![](imgs/4.png)
-
-  2. 从提示中可以看出找不到程序运行的master， 此时需要配置参数，可选的有
-
-     > local 本地单线程
-     > local[K] 本地多线程（指定K个内核）
-     > local[*] 本地多线程（指定所有可用内核）
-     > spark://HOST:PORT 连接到指定的 Spark standalone cluster master，需要指定端口。
-     > mesos://HOST:PORT 连接到指定的 Mesos 集群，需要指定端口。
-     > yarn-client客户端模式 连接到 YARN 集群。需要配置 HADOOP_CONF_DIR。
-
-     指定本地单线程 -Dspark.master=local
-
-     ![](imgs/5.png)
-
-  - 解决 Failed to locate the winutils binary in the hadoop binary path  `java.io.IOException: Could not locate executable``null``\bin\winutils.exe in the Hadoop binaries.` 问题
-
-    1. 下载winutils的windows版本 <https://github.com/srccodes/hadoop-common-2.6.0-bin>
-
-    2. 配置环境变量，增加用户变量HADOOP_HOME，值是下载的zip包解压的目录，然后在系统变量path里增加$HADOOP_HOME\bin 即可。　　
-
-       ![](imgs/6.png)
-
-    3. 重启 idea 再次运行程序，正常执行。
-
-  ## Hive
-
-  可以像编写 SQL 一样来分析数据， FaceBook 开源了 Hive 用于对海量数据进行统计分析。它可以基于 HDFS 提取结构化数据文件，将其映射为一张表，通过 SQL 语句的方式来分析数据。
-
-  因此，Hive 主要有以下优点：
-
-  - 可以将数据通过 SQL 语句来处理，支持提取，转换，加载以及数据分析等大数据作业。
-  - 可以将结构化日志数据转化为文件存储在 HDFS 或者 Hbase 等数据存储系统上。
-  - 底层用 MapReduce 对数据进行计算，也可以自己通过 MapReduce、Spark 编写程序来拓展 Hive 的功能实现更多自定义的数据处理。
-  - Hive 的实质就是将 HQL 语言转化为 MapReduce。它适合离线数据的处理。
-
-  Hive架构图：
-
-  ![](imgs/7.png)
-
-  从上面的架构图可以看出，Hive 主要由 Meta store （元数据），SQL Parser （SQL 解析器），Query Optimizer（查询优化器），Physical Plan（物理计划）这几个重要的部分组成。
-
-  Meta Store 是 Hive 的元数据，默认的 Hive 会将表的元数据存储在 derby 内存数据库中，这是 Hive 自带的，当然一般情况下我们并不会将元数据存储在内存中，而是存入 Mysql 数据库，具体我们会在后面 Hive 的安装部署中介绍到。
-
-  SQL Parser 是指当输出 SQL 语句后，Hive 首先会生成 SQL 语法树，然后解析当前 SQL 语法是否正确，表是否存在，主要做验证检查工作。
-
-  Query Optimizer 会在 SQL Parser 检查之后对 SQL 语句做简单的优化操作，以 Hive 认为最优的方式去执行当前 SQL。
-
-  最后在经过优化之后会生成 Physical Plan ，然后提交给执行引擎去执行，实际上在 SQL 的基层是 MapReduce 作业，将数据存储在 HDFS 文件系统中。
+最后在经过优化之后会生成 Physical Plan ，然后提交给执行引擎去执行，实际上在 SQL 的基层是 MapReduce 作业，将数据存储在 HDFS 文件系统中。
 
 Hive安装：
 
